@@ -1,7 +1,7 @@
 const axios = require('axios');
 
-const clientId = 'd108f33233084c2eb0d31584d7734297'
-const clientSecret = 'a4587a2868ac4d9dabcf1b2750922f01'
+const clientId = 'CLIENT_ID'
+const clientSecret = 'CLIENT_SECRET'
 const clientCredential = Buffer.from(`${clientId}:${clientSecret}`).toString('base64')
 
 const tokenUrl = 'https://accounts.spotify.com/api/token'
