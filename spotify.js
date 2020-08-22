@@ -1,11 +1,19 @@
 const axios = require('axios');
+const got = require('got');
+const jsdom = require("jsdom");
+const {
+    JSDOM
+} = jsdom;
 
-const clientId = 'CLIENT_ID'
-const clientSecret = 'CLIENT_SECRET'
+const clientId = 'd108f33233084c2eb0d31584d7734297'
+const clientSecret = 'a4587a2868ac4d9dabcf1b2750922f01'
 const clientCredential = Buffer.from(`${clientId}:${clientSecret}`).toString('base64')
 
 const tokenUrl = 'https://accounts.spotify.com/api/token'
+const chartUrl = 'https://spotifycharts.com/regional/id/daily/latest'
+
 const trackId = '0OgwkVbQ4jVfsZJO4Xs9hC'
+// const trendList = []
 
 function getToken(url = tokenUrl, credential = clientCredential) {
     return axios({
@@ -46,8 +54,33 @@ function getRanking(trackList, playlistName) {
     }
 }
 
+function spotifyChart(songArr, artistArr) {
+    return artistArr.map((arr, i) => {
+        return {
+            title: songArr[i].textContent,
+            artist: arr.textContent.replace('by ', '')
+        }
+    })
+}
+
+function spotifyRank(chartArr, arrName) {
+    const ranking = chartArr.findIndex(song => {
+        return song.title === 'Aku Yang Salah' && song.artist === 'Mahalini'
+    })
+
+    console.log(`${arrName}:`)
+    console.log('='.repeat(arrName.length + 1))
+
+    if (ranking === -1) {
+        console.log(`??? dari ${chartArr.length} lagu \n`)
+    } else {
+        console.log(`#${ranking + 1} dari ${chartArr.length} lagu \n`)
+    }
+}
+
 (async () => {
     const accessToken = await getToken()
+    const chart = await got(chartUrl);
 
     const lagiViral = await getPlaylist('37i9dQZF1DWWhB4HOWKFQc', accessToken)
     getRanking(lagiViral, 'Lagi Viral')
@@ -69,4 +102,11 @@ function getRanking(trackList, playlistName) {
 
     const indonesiaTerbaik = await getPlaylist('0YwsIE2snT3jzhdojbvibe', accessToken)
     getRanking(indonesiaTerbaik, 'Indonesia Terbaik')
+
+    const dom = new JSDOM(chart.body);
+    const songList = [...dom.window.document.querySelectorAll('.chart-table-track>strong')]
+    const artistList = [...dom.window.document.querySelectorAll('.chart-table-track>span')]
+    const trendList = spotifyChart(songList, artistList)
+
+    spotifyRank(trendList, 'Spotify Charts')
 })()
